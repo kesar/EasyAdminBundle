@@ -35,10 +35,11 @@ class QueryBuilder
      * @param array  $entityConfig
      * @param string $sortDirection
      * @param string $sortField
+     * @param string|null $filter
      *
      * @return DoctrineQueryBuilder
      */
-    public function createListQueryBuilder(array $entityConfig, $sortField = null, $sortDirection = null)
+    public function createListQueryBuilder(array $entityConfig, $sortField = null, $sortDirection = null, $filter = null)
     {
         /** @var EntityManager */
         $em = $this->doctrine->getManagerForClass($entityConfig['class']);
@@ -47,6 +48,10 @@ class QueryBuilder
             ->select('entity')
             ->from($entityConfig['class'], 'entity')
         ;
+
+        if (null !== $filter) {
+            $queryBuilder->where($filter);
+        }
 
         if (null !== $sortField) {
             $queryBuilder->orderBy('entity.'.$sortField, $sortDirection);
@@ -63,10 +68,11 @@ class QueryBuilder
      * @param string      $searchQuery
      * @param string|null $sortField
      * @param string|null $sortDirection
+     * @param string|null $filter
      *
      * @return DoctrineQueryBuilder
      */
-    public function createSearchQueryBuilder(array $entityConfig, $searchQuery, $sortField = null, $sortDirection = null)
+    public function createSearchQueryBuilder(array $entityConfig, $searchQuery, $sortField = null, $sortDirection = null, $filter = null)
     {
         /** @var EntityManager */
         $em = $this->doctrine->getManagerForClass($entityConfig['class']);
@@ -94,6 +100,10 @@ class QueryBuilder
                 $queryBuilder->orWhere(sprintf('LOWER(entity.%s) IN (:words_query)', $name));
                 $queryParameters['words_query'] = explode(' ', $searchQuery);
             }
+        }
+
+        if (null !== $filter) {
+            $queryBuilder->orWhere($filter);
         }
 
         if (0 !== count($queryParameters)) {
